@@ -1,0 +1,199 @@
+:root {
+  --bg: #f4efe6;
+  --bg-accent: #d8c5a2;
+  --panel: rgba(255, 250, 241, 0.88);
+  --panel-strong: #fff8ed;
+  --text: #1d261c;
+  --muted: #5c6652;
+  --grid: #d7d0bf;
+  --snake: #2d6a4f;
+  --snake-head: #1b4332;
+  --food: #bc4749;
+  --shadow: 0 24px 60px rgba(41, 35, 24, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.75), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(216, 197, 162, 0.65), transparent 30%),
+    linear-gradient(135deg, var(--bg), #e8dfd0 55%, #d4c2a4);
+}
+
+.app-shell {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 28px;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.hero,
+.game-panel {
+  background: var(--panel);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(29, 38, 28, 0.08);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.hero {
+  padding: 40px;
+}
+
+.eyebrow,
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 12px 0 16px;
+  font-size: clamp(3rem, 8vw, 5.8rem);
+  line-height: 0.95;
+}
+
+.intro {
+  max-width: 28rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.controls-card {
+  margin-top: 36px;
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  background: var(--panel-strong);
+  border-radius: 22px;
+}
+
+.controls-card p {
+  margin: 6px 0 0;
+}
+
+kbd {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(29, 38, 28, 0.14);
+  background: white;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.game-panel {
+  padding: 24px;
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.stat {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--panel-strong);
+}
+
+.stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.8rem;
+}
+
+.restart-button {
+  border: 0;
+  border-radius: 18px;
+  background: var(--snake-head);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.restart-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.board-wrap {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    #f9f3e8;
+  background-size: 24px 24px;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+  background: rgba(29, 38, 28, 0.3);
+  color: white;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay h2 {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.overlay p {
+  margin: 0;
+  max-width: 20rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    padding: 20px 0 32px;
+  }
+
+  .hero,
+  .game-panel {
+    padding: 22px;
+  }
+
+  .hud {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .restart-button {
+    grid-column: 1 / -1;
+  }
+}
