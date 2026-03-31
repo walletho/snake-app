@@ -1,57 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snake App</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="app-shell">
-    <section class="hero">
-      <p class="eyebrow">Browser Game</p>
-      <h1>Snake</h1>
-      <p class="intro">
-        Sammle Punkte, werde laenger und vermeide Kollisionen mit Wand oder eigenem Koerper.
-      </p>
-      <div class="controls-card">
-        <div>
-          <span class="label">Steuerung</span>
-          <p>Pfeiltasten oder WASD</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Browser Game</p>
+        <h1>Snake_walletho</h1>
+        <p class="intro">
+          Sammle Punkte, werde laenger und vermeide Kollisionen mit Wand oder
+          eigenem Koerper.
+        </p>
+        <div class="controls-card">
+          <div>
+            <span class="label">Steuerung</span>
+            <p>Pfeiltasten oder WASD</p>
+          </div>
+          <div>
+            <span class="label">Aktionen</span>
+            <p><kbd>Leertaste</kbd> pausiert, <kbd>Enter</kbd> startet neu</p>
+          </div>
         </div>
-        <div>
-          <span class="label">Aktionen</span>
-          <p><kbd>Leertaste</kbd> pausiert, <kbd>Enter</kbd> startet neu</p>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="game-panel">
-      <div class="hud">
-        <div class="stat">
-          <span class="label">Score</span>
-          <strong id="score">0</strong>
+      <section class="game-panel">
+        <div class="hud">
+          <div class="stat">
+            <span class="label">Score</span>
+            <strong id="score">0</strong>
+          </div>
+          <div class="stat">
+            <span class="label">Highscore</span>
+            <strong id="highscore">0</strong>
+          </div>
+          <button id="restartButton" class="restart-button" type="button">
+            Neu starten
+          </button>
         </div>
-        <div class="stat">
-          <span class="label">Highscore</span>
-          <strong id="highscore">0</strong>
-        </div>
-        <button id="restartButton" class="restart-button" type="button">Neu starten</button>
-      </div>
 
-      <div class="board-wrap">
-        <canvas id="game" width="480" height="480" aria-label="Snake Spielfeld"></canvas>
-        <div id="overlay" class="overlay">
-          <h2 id="overlayTitle">Spiel starten</h2>
-          <p id="overlayText">Druecke eine Richtungstaste, um zu beginnen.</p>
+        <div class="board-wrap">
+          <canvas
+            id="game"
+            width="480"
+            height="480"
+            aria-label="Snake Spielfeld"
+          ></canvas>
+          <div id="overlay" class="overlay">
+            <h2 id="overlayTitle">Spiel starten</h2>
+            <p id="overlayText">Druecke eine Richtungstaste, um zu beginnen.</p>
+          </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
