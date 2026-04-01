@@ -67,7 +67,7 @@ function resetGame() {
   scoreElement.textContent = "0";
   showOverlay(
     "Spiel starten",
-    "Druecke eine Richtungstaste, den Start-Button, nutze die Buttons oder wische ueber das Spielfeld, um zu beginnen.",
+    "Tippe auf Start oder nutze die Richtungsbuttons. Wischen geht ebenfalls.",
   );
   draw();
 }
@@ -131,7 +131,7 @@ function update() {
 
   if (hitWall || hitSelf) {
     gameOver = true;
-    showOverlay("Game Over", "Druecke Enter, den Button oder wische erneut zum Neustart.");
+    showOverlay("Game Over", "Tippe auf Start, den Button Neu starten oder nutze die Richtungsbuttons.");
     return;
   }
 
@@ -195,7 +195,7 @@ function togglePause() {
   paused = !paused;
 
   if (paused) {
-    showOverlay("Pausiert", "Druecke Leertaste oder tippe auf den Screen zum Weiterspielen.");
+    showOverlay("Pausiert", "Tippe auf Start, den Screen oder Leertaste zum Fortsetzen.");
   } else {
     hideOverlay();
   }
@@ -241,21 +241,26 @@ function directionFromName(name) {
   return null;
 }
 
-function startGame(event) {
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  handleDirectionalInput({ x: 1, y: 0 });
-}
-
 function handleDirectionalInput(nextDirection) {
   if (gameOver) {
     resetGame();
   }
 
   setDirection(nextDirection);
+}
+
+function startGame(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  if (paused) {
+    togglePause();
+    return;
+  }
+
+  handleDirectionalInput({ x: 1, y: 0 });
 }
 
 function handleTouchStart(event) {
@@ -288,14 +293,6 @@ function handleTouchEnd(event) {
   touchStartY = null;
 
   if (Math.max(absX, absY) < minSwipeDistance) {
-    if (gameOver) {
-      resetGame();
-      return;
-    }
-
-    if (paused) {
-      togglePause();
-    }
     return;
   }
 
@@ -326,19 +323,12 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-for (const element of [canvas, overlayElement]) {
-  element.addEventListener("touchstart", handleTouchStart, { passive: true });
-  element.addEventListener("touchmove", handleTouchMove, { passive: false });
-  element.addEventListener("touchend", handleTouchEnd, { passive: true });
-}
+canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
+canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+canvas.addEventListener("touchend", handleTouchEnd, { passive: true });
 
 restartButton.addEventListener("click", resetGame);
-restartButton.addEventListener("touchend", (event) => {
-  event.preventDefault();
-  resetGame();
-}, { passive: false });
 startButton.addEventListener("click", startGame);
-startButton.addEventListener("pointerdown", startGame);
 canvas.addEventListener("click", () => {
   if (paused) {
     togglePause();
@@ -347,23 +337,17 @@ canvas.addEventListener("click", () => {
 overlayElement.addEventListener("click", () => {
   if (gameOver) {
     resetGame();
-  } else if (paused) {
-    togglePause();
   }
 });
 
 for (const button of touchButtons) {
-  const handler = (event) => {
+  button.addEventListener("click", (event) => {
     event.preventDefault();
-    event.stopPropagation();
     const nextDirection = directionFromName(button.dataset.direction);
     if (nextDirection) {
       handleDirectionalInput(nextDirection);
     }
-  };
-
-  button.addEventListener("click", handler);
-  button.addEventListener("pointerdown", handler);
+  });
 }
 
 resetGame();
