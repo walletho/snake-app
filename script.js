@@ -241,7 +241,12 @@ function directionFromName(name) {
   return null;
 }
 
-function startGame() {
+function startGame(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
   handleDirectionalInput({ x: 1, y: 0 });
 }
 
@@ -333,10 +338,7 @@ restartButton.addEventListener("touchend", (event) => {
   resetGame();
 }, { passive: false });
 startButton.addEventListener("click", startGame);
-startButton.addEventListener("touchend", (event) => {
-  event.preventDefault();
-  startGame();
-}, { passive: false });
+startButton.addEventListener("pointerdown", startGame);
 canvas.addEventListener("click", () => {
   if (paused) {
     togglePause();
@@ -353,6 +355,7 @@ overlayElement.addEventListener("click", () => {
 for (const button of touchButtons) {
   const handler = (event) => {
     event.preventDefault();
+    event.stopPropagation();
     const nextDirection = directionFromName(button.dataset.direction);
     if (nextDirection) {
       handleDirectionalInput(nextDirection);
@@ -360,7 +363,7 @@ for (const button of touchButtons) {
   };
 
   button.addEventListener("click", handler);
-  button.addEventListener("touchstart", handler, { passive: false });
+  button.addEventListener("pointerdown", handler);
 }
 
 resetGame();
