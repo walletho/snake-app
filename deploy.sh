@@ -7,6 +7,7 @@ SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519}"
 
 rsync -av --delete \
   --exclude '.git' \
+  --exclude '.gitignore' \
   --exclude 'deploy.sh' \
   --exclude 'Caddyfile.example' \
   -e "ssh -i ${SSH_KEY} -o IdentitiesOnly=yes" \

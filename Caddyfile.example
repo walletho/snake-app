@@ -1,4 +1,4 @@
-snake.wallenstorfer.com {
+wallenstorfer.com, www.wallenstorfer.com, snake.wallenstorfer.com, www.snake.wallenstorfer.com {
 	encode zstd gzip
 	root * /var/www/site/public
 	header {
@@ -8,8 +8,4 @@ snake.wallenstorfer.com {
 	}
 	try_files {path} /index.html
 	file_server
-}
-
-wallenstorfer.com, www.wallenstorfer.com, www.snake.wallenstorfer.com {
-	redir https://snake.wallenstorfer.com{uri} permanent
 }
