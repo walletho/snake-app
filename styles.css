@@ -152,6 +152,9 @@ kbd {
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px), #f9f3e8;
   background-size: 24px 24px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 canvas {
@@ -159,6 +162,7 @@ canvas {
   width: 100%;
   height: auto;
   aspect-ratio: 1;
+  touch-action: none;
 }
 
 .overlay {

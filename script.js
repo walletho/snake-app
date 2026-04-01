@@ -11,6 +11,7 @@ const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 const tickMs = 120;
 const highscoreKey = "snake-app-highscore";
+const minSwipeDistance = 24;
 
 let snake;
 let direction;
@@ -21,6 +22,8 @@ let gameStarted;
 let gameOver;
 let paused;
 let lastFrameTime = 0;
+let touchStartX = null;
+let touchStartY = null;
 
 function loadHighscore() {
   const stored = Number.parseInt(localStorage.getItem(highscoreKey) ?? "0", 10);
@@ -57,8 +60,13 @@ function resetGame() {
   gameStarted = false;
   gameOver = false;
   paused = false;
+  touchStartX = null;
+  touchStartY = null;
   scoreElement.textContent = "0";
-  showOverlay("Spiel starten", "Druecke eine Richtungstaste, um zu beginnen.");
+  showOverlay(
+    "Spiel starten",
+    "Druecke eine Richtungstaste oder wische ueber das Spielfeld, um zu beginnen.",
+  );
   draw();
 }
 
@@ -73,10 +81,18 @@ function hideOverlay() {
 }
 
 function setDirection(nextDirection) {
-  const reversingX = nextDirection.x !== 0 && nextDirection.x === -direction.x;
-  const reversingY = nextDirection.y !== 0 && nextDirection.y === -direction.y;
+  const activeDirection = queuedDirection ?? direction;
+  const reversingX = nextDirection.x !== 0 && nextDirection.x === -activeDirection.x;
+  const reversingY = nextDirection.y !== 0 && nextDirection.y === -activeDirection.y;
 
   if (gameStarted && (reversingX || reversingY)) {
+    return;
+  }
+
+  const sameDirection =
+    nextDirection.x === activeDirection.x && nextDirection.y === activeDirection.y;
+
+  if (sameDirection) {
     return;
   }
 
@@ -113,7 +129,7 @@ function update() {
 
   if (hitWall || hitSelf) {
     gameOver = true;
-    showOverlay("Game Over", "Druecke Enter oder den Button, um neu zu starten.");
+    showOverlay("Game Over", "Druecke Enter, den Button oder wische erneut zum Neustart.");
     return;
   }
 
@@ -177,32 +193,125 @@ function togglePause() {
   paused = !paused;
 
   if (paused) {
-    showOverlay("Pausiert", "Druecke Leertaste, um weiterzuspielen.");
+    showOverlay("Pausiert", "Druecke Leertaste oder tippe auf den Screen zum Weiterspielen.");
   } else {
     hideOverlay();
   }
 }
 
+function directionFromKey(key) {
+  if (key === "arrowup" || key === "w") {
+    return { x: 0, y: -1 };
+  }
+
+  if (key === "arrowdown" || key === "s") {
+    return { x: 0, y: 1 };
+  }
+
+  if (key === "arrowleft" || key === "a") {
+    return { x: -1, y: 0 };
+  }
+
+  if (key === "arrowright" || key === "d") {
+    return { x: 1, y: 0 };
+  }
+
+  return null;
+}
+
+function handleDirectionalInput(nextDirection) {
+  if (gameOver) {
+    resetGame();
+  }
+
+  setDirection(nextDirection);
+}
+
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
+  const nextDirection = directionFromKey(key);
 
-  if (key === "arrowup" || key === "w") {
-    setDirection({ x: 0, y: -1 });
-  } else if (key === "arrowdown" || key === "s") {
-    setDirection({ x: 0, y: 1 });
-  } else if (key === "arrowleft" || key === "a") {
-    setDirection({ x: -1, y: 0 });
-  } else if (key === "arrowright" || key === "d") {
-    setDirection({ x: 1, y: 0 });
-  } else if (key === " ") {
+  if (nextDirection) {
+    event.preventDefault();
+    handleDirectionalInput(nextDirection);
+    return;
+  }
+
+  if (key === " ") {
     event.preventDefault();
     togglePause();
   } else if (key === "enter") {
+    event.preventDefault();
     resetGame();
   }
 });
 
+canvas.addEventListener(
+  "touchstart",
+  (event) => {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  },
+  { passive: true },
+);
+
+canvas.addEventListener(
+  "touchmove",
+  (event) => {
+    if (gameOver || paused || !gameStarted) {
+      return;
+    }
+
+    event.preventDefault();
+  },
+  { passive: false },
+);
+
+canvas.addEventListener(
+  "touchend",
+  (event) => {
+    const touch = event.changedTouches[0];
+
+    if (!touch || touchStartX === null || touchStartY === null) {
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    touchStartX = null;
+    touchStartY = null;
+
+    if (Math.max(absX, absY) < minSwipeDistance) {
+      if (paused) {
+        togglePause();
+      }
+      return;
+    }
+
+    if (absX > absY) {
+      handleDirectionalInput(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+      return;
+    }
+
+    handleDirectionalInput(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+  },
+  { passive: true },
+);
+
 restartButton.addEventListener("click", resetGame);
+canvas.addEventListener("click", () => {
+  if (paused) {
+    togglePause();
+  }
+});
 
 resetGame();
 requestAnimationFrame(loop);
