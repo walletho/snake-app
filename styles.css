@@ -191,6 +191,46 @@ canvas {
   line-height: 1.5;
 }
 
+.touch-controls {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(64px, 88px));
+  justify-content: center;
+  gap: 12px;
+}
+
+.touch-button {
+  border: 0;
+  border-radius: 18px;
+  background: var(--panel-strong);
+  color: var(--snake-head);
+  font: inherit;
+  font-size: 1.8rem;
+  font-weight: 700;
+  min-height: 64px;
+  box-shadow: var(--shadow);
+  touch-action: manipulation;
+}
+
+.touch-up {
+  grid-column: 2;
+}
+
+.touch-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.touch-down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.touch-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;

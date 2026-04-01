@@ -6,6 +6,7 @@ const overlayElement = document.getElementById("overlay");
 const overlayTitleElement = document.getElementById("overlayTitle");
 const overlayTextElement = document.getElementById("overlayText");
 const restartButton = document.getElementById("restartButton");
+const touchButtons = document.querySelectorAll("[data-direction]");
 
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
@@ -219,6 +220,26 @@ function directionFromKey(key) {
   return null;
 }
 
+function directionFromName(name) {
+  if (name === "up") {
+    return { x: 0, y: -1 };
+  }
+
+  if (name === "down") {
+    return { x: 0, y: 1 };
+  }
+
+  if (name === "left") {
+    return { x: -1, y: 0 };
+  }
+
+  if (name === "right") {
+    return { x: 1, y: 0 };
+  }
+
+  return null;
+}
+
 function handleDirectionalInput(nextDirection) {
   if (gameOver) {
     resetGame();
@@ -318,6 +339,19 @@ overlayElement.addEventListener("click", () => {
     togglePause();
   }
 });
+
+for (const button of touchButtons) {
+  const handler = (event) => {
+    event.preventDefault();
+    const nextDirection = directionFromName(button.dataset.direction);
+    if (nextDirection) {
+      handleDirectionalInput(nextDirection);
+    }
+  };
+
+  button.addEventListener("click", handler);
+  button.addEventListener("touchstart", handler, { passive: false });
+}
 
 resetGame();
 requestAnimationFrame(loop);
