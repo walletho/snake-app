@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 REMOTE="ubuntu@92.5.80.61"
 TARGET_DIR="/var/www/site/public"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519}"

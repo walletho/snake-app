@@ -62,6 +62,8 @@ Lokal aus dem Repo:
 ./deploy.sh
 ```
 
+Das Script wechselt automatisch ins eigene Repo-Verzeichnis, damit es nicht versehentlich aus dem falschen Arbeitsordner deployed.
+
 Standardziel:
 
 - Host: `ubuntu@92.5.80.61`
