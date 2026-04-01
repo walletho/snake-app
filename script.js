@@ -6,6 +6,7 @@ const overlayElement = document.getElementById("overlay");
 const overlayTitleElement = document.getElementById("overlayTitle");
 const overlayTextElement = document.getElementById("overlayText");
 const restartButton = document.getElementById("restartButton");
+const startButton = document.getElementById("startButton");
 const touchButtons = document.querySelectorAll("[data-direction]");
 
 const gridSize = 20;
@@ -66,7 +67,7 @@ function resetGame() {
   scoreElement.textContent = "0";
   showOverlay(
     "Spiel starten",
-    "Druecke eine Richtungstaste oder wische ueber das Spielfeld, um zu beginnen.",
+    "Druecke eine Richtungstaste, den Start-Button, nutze die Buttons oder wische ueber das Spielfeld, um zu beginnen.",
   );
   draw();
 }
@@ -240,6 +241,10 @@ function directionFromName(name) {
   return null;
 }
 
+function startGame() {
+  handleDirectionalInput({ x: 1, y: 0 });
+}
+
 function handleDirectionalInput(nextDirection) {
   if (gameOver) {
     resetGame();
@@ -326,6 +331,11 @@ restartButton.addEventListener("click", resetGame);
 restartButton.addEventListener("touchend", (event) => {
   event.preventDefault();
   resetGame();
+}, { passive: false });
+startButton.addEventListener("click", startGame);
+startButton.addEventListener("touchend", (event) => {
+  event.preventDefault();
+  startGame();
 }, { passive: false });
 canvas.addEventListener("click", () => {
   if (paused) {

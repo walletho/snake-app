@@ -176,6 +176,24 @@ canvas {
   color: white;
 }
 
+.overlay-content {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.start-button {
+  border: 0;
+  border-radius: 18px;
+  background: white;
+  color: var(--snake-head);
+  font: inherit;
+  font-weight: 700;
+  padding: 14px 24px;
+  min-width: 140px;
+  touch-action: manipulation;
+}
+
 .overlay.hidden {
   display: none;
 }
