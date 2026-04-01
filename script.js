@@ -227,6 +227,55 @@ function handleDirectionalInput(nextDirection) {
   setDirection(nextDirection);
 }
 
+function handleTouchStart(event) {
+  const touch = event.touches[0];
+  if (!touch) {
+    return;
+  }
+
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}
+
+function handleTouchMove(event) {
+  event.preventDefault();
+}
+
+function handleTouchEnd(event) {
+  const touch = event.changedTouches[0];
+
+  if (!touch || touchStartX === null || touchStartY === null) {
+    return;
+  }
+
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
+
+  touchStartX = null;
+  touchStartY = null;
+
+  if (Math.max(absX, absY) < minSwipeDistance) {
+    if (gameOver) {
+      resetGame();
+      return;
+    }
+
+    if (paused) {
+      togglePause();
+    }
+    return;
+  }
+
+  if (absX > absY) {
+    handleDirectionalInput(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+    return;
+  }
+
+  handleDirectionalInput(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+}
+
 window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   const nextDirection = directionFromKey(key);
@@ -246,69 +295,26 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-canvas.addEventListener(
-  "touchstart",
-  (event) => {
-    const touch = event.touches[0];
-    if (!touch) {
-      return;
-    }
-
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-  },
-  { passive: true },
-);
-
-canvas.addEventListener(
-  "touchmove",
-  (event) => {
-    if (gameOver || paused || !gameStarted) {
-      return;
-    }
-
-    event.preventDefault();
-  },
-  { passive: false },
-);
-
-canvas.addEventListener(
-  "touchend",
-  (event) => {
-    const touch = event.changedTouches[0];
-
-    if (!touch || touchStartX === null || touchStartY === null) {
-      return;
-    }
-
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = touch.clientY - touchStartY;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-
-    touchStartX = null;
-    touchStartY = null;
-
-    if (Math.max(absX, absY) < minSwipeDistance) {
-      if (paused) {
-        togglePause();
-      }
-      return;
-    }
-
-    if (absX > absY) {
-      handleDirectionalInput(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
-      return;
-    }
-
-    handleDirectionalInput(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
-  },
-  { passive: true },
-);
+for (const element of [canvas, overlayElement]) {
+  element.addEventListener("touchstart", handleTouchStart, { passive: true });
+  element.addEventListener("touchmove", handleTouchMove, { passive: false });
+  element.addEventListener("touchend", handleTouchEnd, { passive: true });
+}
 
 restartButton.addEventListener("click", resetGame);
+restartButton.addEventListener("touchend", (event) => {
+  event.preventDefault();
+  resetGame();
+}, { passive: false });
 canvas.addEventListener("click", () => {
   if (paused) {
+    togglePause();
+  }
+});
+overlayElement.addEventListener("click", () => {
+  if (gameOver) {
+    resetGame();
+  } else if (paused) {
     togglePause();
   }
 });
