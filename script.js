@@ -15,14 +15,13 @@ const tickMs = 120;
 const highscoreKey = "snake-app-highscore";
 const minSwipeDistance = 24;
 
-let snake;
-let direction;
-let queuedDirection;
-let food;
-let score;
-let gameStarted;
-let gameOver;
-let paused;
+let snake = [];
+let direction = { x: 0, y: 0 };
+let food = { x: 14, y: 10 };
+let score = 0;
+let gameStarted = false;
+let gameOver = false;
+let paused = false;
 let lastFrameTime = 0;
 let touchStartX = null;
 let touchStartY = null;
@@ -34,6 +33,16 @@ function loadHighscore() {
 
 let highscore = loadHighscore();
 highscoreElement.textContent = String(highscore);
+
+function showOverlay(title, text) {
+  overlayTitleElement.textContent = title;
+  overlayTextElement.textContent = text;
+  overlayElement.classList.remove("hidden");
+}
+
+function hideOverlay() {
+  overlayElement.classList.add("hidden");
+}
 
 function randomFoodPosition() {
   while (true) {
@@ -56,7 +65,6 @@ function resetGame() {
     { x: 8, y: 10 },
   ];
   direction = { x: 0, y: 0 };
-  queuedDirection = null;
   food = { x: 14, y: 10 };
   score = 0;
   gameStarted = false;
@@ -67,38 +75,31 @@ function resetGame() {
   scoreElement.textContent = "0";
   showOverlay(
     "Spiel starten",
-    "Tippe auf Start oder nutze die Richtungsbuttons. Wischen geht ebenfalls.",
+    "Tippe auf Start oder nutze eine Richtung. Auf dem Handy gehen auch die Pfeil-Buttons.",
   );
   draw();
 }
 
-function showOverlay(title, text) {
-  overlayTitleElement.textContent = title;
-  overlayTextElement.textContent = text;
-  overlayElement.classList.remove("hidden");
+function canTurn(nextDirection) {
+  if (!gameStarted) {
+    return true;
+  }
+
+  const reversingX = nextDirection.x !== 0 && nextDirection.x === -direction.x;
+  const reversingY = nextDirection.y !== 0 && nextDirection.y === -direction.y;
+  return !(reversingX || reversingY);
 }
 
-function hideOverlay() {
-  overlayElement.classList.add("hidden");
-}
+function startMoving(nextDirection) {
+  if (gameOver) {
+    resetGame();
+  }
 
-function setDirection(nextDirection) {
-  const activeDirection = queuedDirection ?? direction;
-  const reversingX = nextDirection.x !== 0 && nextDirection.x === -activeDirection.x;
-  const reversingY = nextDirection.y !== 0 && nextDirection.y === -activeDirection.y;
-
-  if (gameStarted && (reversingX || reversingY)) {
+  if (!canTurn(nextDirection)) {
     return;
   }
 
-  const sameDirection =
-    nextDirection.x === activeDirection.x && nextDirection.y === activeDirection.y;
-
-  if (sameDirection) {
-    return;
-  }
-
-  queuedDirection = nextDirection;
+  direction = nextDirection;
 
   if (!gameStarted) {
     gameStarted = true;
@@ -111,27 +112,17 @@ function update() {
     return;
   }
 
-  if (queuedDirection) {
-    direction = queuedDirection;
-    queuedDirection = null;
-  }
-
   const head = {
     x: snake[0].x + direction.x,
     y: snake[0].y + direction.y,
   };
 
-  const hitWall =
-    head.x < 0 ||
-    head.y < 0 ||
-    head.x >= tileCount ||
-    head.y >= tileCount;
-
+  const hitWall = head.x < 0 || head.y < 0 || head.x >= tileCount || head.y >= tileCount;
   const hitSelf = snake.some((segment) => segment.x === head.x && segment.y === head.y);
 
   if (hitWall || hitSelf) {
     gameOver = true;
-    showOverlay("Game Over", "Tippe auf Start, den Button Neu starten oder nutze die Richtungsbuttons.");
+    showOverlay("Game Over", "Tippe auf Start oder Neu starten fuer eine neue Runde.");
     return;
   }
 
@@ -140,11 +131,13 @@ function update() {
   if (head.x === food.x && head.y === food.y) {
     score += 1;
     scoreElement.textContent = String(score);
+
     if (score > highscore) {
       highscore = score;
       highscoreElement.textContent = String(highscore);
       localStorage.setItem(highscoreKey, String(highscore));
     }
+
     food = randomFoodPosition();
   } else {
     snake.pop();
@@ -164,7 +157,6 @@ function drawRoundedTile(x, y, color, radius = 6) {
 
 function draw() {
   context.clearRect(0, 0, canvas.width, canvas.height);
-
   drawRoundedTile(food.x, food.y, "#bc4749", 10);
 
   snake.forEach((segment, index) => {
@@ -195,64 +187,31 @@ function togglePause() {
   paused = !paused;
 
   if (paused) {
-    showOverlay("Pausiert", "Tippe auf Start, den Screen oder Leertaste zum Fortsetzen.");
+    showOverlay("Pausiert", "Tippe auf Start oder druecke Leertaste zum Fortsetzen.");
   } else {
     hideOverlay();
   }
 }
 
 function directionFromKey(key) {
-  if (key === "arrowup" || key === "w") {
-    return { x: 0, y: -1 };
-  }
-
-  if (key === "arrowdown" || key === "s") {
-    return { x: 0, y: 1 };
-  }
-
-  if (key === "arrowleft" || key === "a") {
-    return { x: -1, y: 0 };
-  }
-
-  if (key === "arrowright" || key === "d") {
-    return { x: 1, y: 0 };
-  }
-
+  if (key === "arrowup" || key === "w") return { x: 0, y: -1 };
+  if (key === "arrowdown" || key === "s") return { x: 0, y: 1 };
+  if (key === "arrowleft" || key === "a") return { x: -1, y: 0 };
+  if (key === "arrowright" || key === "d") return { x: 1, y: 0 };
   return null;
 }
 
 function directionFromName(name) {
-  if (name === "up") {
-    return { x: 0, y: -1 };
-  }
-
-  if (name === "down") {
-    return { x: 0, y: 1 };
-  }
-
-  if (name === "left") {
-    return { x: -1, y: 0 };
-  }
-
-  if (name === "right") {
-    return { x: 1, y: 0 };
-  }
-
+  if (name === "up") return { x: 0, y: -1 };
+  if (name === "down") return { x: 0, y: 1 };
+  if (name === "left") return { x: -1, y: 0 };
+  if (name === "right") return { x: 1, y: 0 };
   return null;
-}
-
-function handleDirectionalInput(nextDirection) {
-  if (gameOver) {
-    resetGame();
-  }
-
-  setDirection(nextDirection);
 }
 
 function startGame(event) {
   if (event) {
     event.preventDefault();
-    event.stopPropagation();
   }
 
   if (paused) {
@@ -260,10 +219,28 @@ function startGame(event) {
     return;
   }
 
-  handleDirectionalInput({ x: 1, y: 0 });
+  startMoving({ x: 1, y: 0 });
 }
 
-function handleTouchStart(event) {
+window.addEventListener("keydown", (event) => {
+  const nextDirection = directionFromKey(event.key.toLowerCase());
+
+  if (nextDirection) {
+    event.preventDefault();
+    startMoving(nextDirection);
+    return;
+  }
+
+  if (event.key === " ") {
+    event.preventDefault();
+    togglePause();
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    resetGame();
+  }
+});
+
+canvas.addEventListener("touchstart", (event) => {
   const touch = event.touches[0];
   if (!touch) {
     return;
@@ -271,13 +248,13 @@ function handleTouchStart(event) {
 
   touchStartX = touch.clientX;
   touchStartY = touch.clientY;
-}
+}, { passive: true });
 
-function handleTouchMove(event) {
+canvas.addEventListener("touchmove", (event) => {
   event.preventDefault();
-}
+}, { passive: false });
 
-function handleTouchEnd(event) {
+canvas.addEventListener("touchend", (event) => {
   const touch = event.changedTouches[0];
 
   if (!touch || touchStartX === null || touchStartY === null) {
@@ -297,58 +274,25 @@ function handleTouchEnd(event) {
   }
 
   if (absX > absY) {
-    handleDirectionalInput(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+    startMoving(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
     return;
   }
 
-  handleDirectionalInput(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
-}
+  startMoving(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+}, { passive: true });
 
-window.addEventListener("keydown", (event) => {
-  const key = event.key.toLowerCase();
-  const nextDirection = directionFromKey(key);
-
-  if (nextDirection) {
-    event.preventDefault();
-    handleDirectionalInput(nextDirection);
-    return;
-  }
-
-  if (key === " ") {
-    event.preventDefault();
-    togglePause();
-  } else if (key === "enter") {
-    event.preventDefault();
-    resetGame();
-  }
-});
-
-canvas.addEventListener("touchstart", handleTouchStart, { passive: true });
-canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
-canvas.addEventListener("touchend", handleTouchEnd, { passive: true });
-
-restartButton.addEventListener("click", resetGame);
 startButton.addEventListener("click", startGame);
-canvas.addEventListener("click", () => {
-  if (paused) {
-    togglePause();
-  }
-});
-overlayElement.addEventListener("click", () => {
-  if (gameOver) {
-    resetGame();
-  }
-});
+restartButton.addEventListener("click", resetGame);
 
-for (const button of touchButtons) {
+touchButtons.forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const nextDirection = directionFromName(button.dataset.direction);
     if (nextDirection) {
-      handleDirectionalInput(nextDirection);
+      startMoving(nextDirection);
     }
   });
-}
+});
 
 resetGame();
 requestAnimationFrame(loop);
