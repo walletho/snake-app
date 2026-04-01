@@ -16,23 +16,29 @@
     <main class="app-shell">
       <section class="hero">
         <p class="eyebrow">Browser Game</p>
-        <h1>Snake von Walletho in V004</h1>
+        <h1>Snake von Walletho in V005</h1>
         <p class="intro">
           Sammle Punkte, werde laenger und vermeide Kollisionen mit Wand oder
           eigenem Koerper.
         </p>
-        <div class="controls-card">
+        <div class="controls-card controls-desktop">
           <div>
             <span class="label">Desktop</span>
-            <p>Pfeiltasten oder WASD</p>
-          </div>
-          <div>
-            <span class="label">Handy</span>
-            <p>Wische auf dem Spielfeld nach oben, unten, links oder rechts.</p>
+            <p>Pfeiltasten oder WASD fuer Richtungen</p>
           </div>
           <div>
             <span class="label">Aktionen</span>
             <p><kbd>Leertaste</kbd> pausiert, <kbd>Enter</kbd> startet neu</p>
+          </div>
+        </div>
+        <div class="controls-card controls-mobile">
+          <div>
+            <span class="label">Android / Touch</span>
+            <p>Starte mit dem Start-Button und steuere mit den grossen Pfeil-Buttons.</p>
+          </div>
+          <div>
+            <span class="label">Optional</span>
+            <p>Wischen auf dem Spielfeld funktioniert ebenfalls.</p>
           </div>
         </div>
       </section>
@@ -63,12 +69,16 @@
             <div class="overlay-content">
               <h2 id="overlayTitle">Spiel starten</h2>
               <p id="overlayText">
-                Druecke eine Richtungstaste, nutze die Buttons oder wische ueber
-                das Spielfeld, um zu beginnen.
+                Druecke eine Richtungstaste oder tippe auf Start.
               </p>
               <button id="startButton" class="start-button" type="button">Start</button>
             </div>
           </div>
+        </div>
+
+        <div class="mobile-action-row">
+          <button id="mobileStartButton" class="mobile-action-button" type="button">Start</button>
+          <button id="mobilePauseButton" class="mobile-action-button secondary" type="button">Pause</button>
         </div>
 
         <div class="touch-controls" aria-label="Touch Steuerung">

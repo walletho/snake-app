@@ -7,6 +7,8 @@ const overlayTitleElement = document.getElementById("overlayTitle");
 const overlayTextElement = document.getElementById("overlayText");
 const restartButton = document.getElementById("restartButton");
 const startButton = document.getElementById("startButton");
+const mobileStartButton = document.getElementById("mobileStartButton");
+const mobilePauseButton = document.getElementById("mobilePauseButton");
 const touchButtons = document.querySelectorAll("[data-direction]");
 
 const gridSize = 20;
@@ -14,6 +16,7 @@ const tileCount = canvas.width / gridSize;
 const tickMs = 120;
 const highscoreKey = "snake-app-highscore";
 const minSwipeDistance = 24;
+const isTouchPreferred = window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
 
 let snake = [];
 let direction = { x: 0, y: 0 };
@@ -58,6 +61,14 @@ function randomFoodPosition() {
   }
 }
 
+function updateOverlayForMode() {
+  if (isTouchPreferred) {
+    overlayTextElement.textContent = "Tippe auf Start und steuere mit den grossen Pfeil-Buttons oder per Wischgeste.";
+  } else {
+    overlayTextElement.textContent = "Druecke eine Richtungstaste oder tippe auf Start, um zu beginnen.";
+  }
+}
+
 function resetGame() {
   snake = [
     { x: 10, y: 10 },
@@ -73,10 +84,8 @@ function resetGame() {
   touchStartX = null;
   touchStartY = null;
   scoreElement.textContent = "0";
-  showOverlay(
-    "Spiel starten",
-    "Tippe auf Start oder nutze eine Richtung. Auf dem Handy gehen auch die Pfeil-Buttons.",
-  );
+  showOverlay("Spiel starten", "");
+  updateOverlayForMode();
   draw();
 }
 
@@ -187,7 +196,9 @@ function togglePause() {
   paused = !paused;
 
   if (paused) {
-    showOverlay("Pausiert", "Tippe auf Start oder druecke Leertaste zum Fortsetzen.");
+    showOverlay("Pausiert", isTouchPreferred
+      ? "Tippe auf Start oder Pause zum Fortsetzen."
+      : "Druecke Leertaste oder Start zum Fortsetzen.");
   } else {
     hideOverlay();
   }
@@ -281,8 +292,22 @@ canvas.addEventListener("touchend", (event) => {
   startMoving(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
 }, { passive: true });
 
-startButton.addEventListener("click", startGame);
-restartButton.addEventListener("click", resetGame);
+[startButton, mobileStartButton].forEach((button) => {
+  button.addEventListener("click", startGame);
+});
+
+[restartButton].forEach((button) => {
+  button.addEventListener("click", resetGame);
+});
+
+mobilePauseButton.addEventListener("click", () => {
+  if (!gameStarted && !paused) {
+    startGame();
+    return;
+  }
+
+  togglePause();
+});
 
 touchButtons.forEach((button) => {
   button.addEventListener("click", (event) => {
