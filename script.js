@@ -302,6 +302,8 @@ async function openLeaderboard() {
 }
 
 window.addEventListener("keydown", (event) => {
+  if (document.activeElement === playerNameInput) return;
+
   const nextDirection = directionFromKey(event.key.toLowerCase());
   if (nextDirection) {
     event.preventDefault();
@@ -312,7 +314,6 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     togglePause();
   } else if (event.key === "Enter") {
-    if (document.activeElement === playerNameInput) return;
     event.preventDefault();
     resetGame();
   }
