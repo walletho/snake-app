@@ -205,7 +205,7 @@ function draw() {
     drawRoundedTile(
       segment.x,
       segment.y,
-      index === 0 ? "#00BFFF" : "#87CEEB",
+      index === 0 ? "#00BFFF" : "#B8860B",
       index === 0 ? 8 : 6,
     );
   });
