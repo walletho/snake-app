@@ -16,7 +16,7 @@
     <main class="app-shell">
       <section class="hero">
         <p class="eyebrow">Browser Game</p>
-        <h1>Snake von Walletho in V005</h1>
+        <h1>Snake von Walletho in V006</h1>
         <p class="intro">
           Sammle Punkte, werde laenger und vermeide Kollisionen mit Wand oder
           eigenem Koerper.
@@ -53,9 +53,10 @@
             <span class="label">Highscore</span>
             <strong id="highscore">0</strong>
           </div>
-          <button id="restartButton" class="restart-button" type="button">
-            Neu starten
-          </button>
+          <div class="hud-buttons">
+            <button id="leaderboardButton" class="restart-button" type="button">Rangliste</button>
+            <button id="restartButton" class="restart-button" type="button">Neu starten</button>
+          </div>
         </div>
 
         <div class="board-wrap">
@@ -71,6 +72,21 @@
               <p id="overlayText">
                 Druecke eine Richtungstaste oder tippe auf Start.
               </p>
+              <div id="scoreForm" class="score-form hidden">
+                <input
+                  id="playerName"
+                  type="text"
+                  maxlength="20"
+                  placeholder="Dein Name"
+                  class="name-input"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <div class="score-form-buttons">
+                  <button id="submitScoreButton" class="start-button" type="button">Eintragen</button>
+                  <button id="skipScoreButton" class="skip-button" type="button">Überspringen</button>
+                </div>
+              </div>
               <button id="startButton" class="start-button" type="button">Start</button>
             </div>
           </div>
@@ -88,8 +104,17 @@
           <button class="touch-button touch-right" type="button" data-direction="right">▶</button>
         </div>
       </section>
+
+      <section id="leaderboardPanel" class="leaderboard-panel hidden">
+        <div class="leaderboard-header">
+          <h2>Top 20 Rangliste</h2>
+          <button id="closeLeaderboardButton" class="restart-button" type="button">Schließen</button>
+        </div>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+      </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
   </body>
 </html>

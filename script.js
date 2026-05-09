@@ -1,3 +1,7 @@
+const SUPABASE_URL = "https://ytmtahwjoqjyurxzpzhu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_bZiYyIUDFTmL055d8FIl_g_r5dKWett";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const canvas = document.getElementById("game");
 const context = canvas.getContext("2d");
 const scoreElement = document.getElementById("score");
@@ -5,10 +9,18 @@ const highscoreElement = document.getElementById("highscore");
 const overlayElement = document.getElementById("overlay");
 const overlayTitleElement = document.getElementById("overlayTitle");
 const overlayTextElement = document.getElementById("overlayText");
+const scoreFormElement = document.getElementById("scoreForm");
+const playerNameInput = document.getElementById("playerName");
+const submitScoreButton = document.getElementById("submitScoreButton");
+const skipScoreButton = document.getElementById("skipScoreButton");
 const restartButton = document.getElementById("restartButton");
 const startButton = document.getElementById("startButton");
 const mobileStartButton = document.getElementById("mobileStartButton");
 const mobilePauseButton = document.getElementById("mobilePauseButton");
+const leaderboardButton = document.getElementById("leaderboardButton");
+const leaderboardPanel = document.getElementById("leaderboardPanel");
+const leaderboardList = document.getElementById("leaderboardList");
+const closeLeaderboardButton = document.getElementById("closeLeaderboardButton");
 const touchButtons = document.querySelectorAll("[data-direction]");
 
 const gridSize = 20;
@@ -47,13 +59,35 @@ function hideOverlay() {
   overlayElement.classList.add("hidden");
 }
 
+function showScoreForm() {
+  scoreFormElement.classList.remove("hidden");
+  startButton.classList.add("hidden");
+  playerNameInput.value = "";
+  if (!isTouchPreferred) {
+    playerNameInput.focus();
+  }
+}
+
+function hideScoreForm() {
+  scoreFormElement.classList.add("hidden");
+  startButton.classList.remove("hidden");
+}
+
+function showGameOverOverlay() {
+  overlayTitleElement.textContent = "Game Over";
+  overlayTextElement.textContent = `Score: ${score}`;
+  overlayElement.classList.remove("hidden");
+  if (score > 0) {
+    showScoreForm();
+  }
+}
+
 function randomFoodPosition() {
   while (true) {
     const candidate = {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount),
     };
-
     const collides = snake.some((segment) => segment.x === candidate.x && segment.y === candidate.y);
     if (!collides) {
       return candidate;
@@ -84,6 +118,7 @@ function resetGame() {
   touchStartX = null;
   touchStartY = null;
   scoreElement.textContent = "0";
+  hideScoreForm();
   showOverlay("Spiel starten", "");
   updateOverlayForMode();
   draw();
@@ -93,7 +128,6 @@ function canTurn(nextDirection) {
   if (!gameStarted) {
     return true;
   }
-
   const reversingX = nextDirection.x !== 0 && nextDirection.x === -direction.x;
   const reversingY = nextDirection.y !== 0 && nextDirection.y === -direction.y;
   return !(reversingX || reversingY);
@@ -101,6 +135,7 @@ function canTurn(nextDirection) {
 
 function startMoving(nextDirection) {
   if (gameOver) {
+    if (!scoreFormElement.classList.contains("hidden")) return;
     resetGame();
   }
 
@@ -131,7 +166,7 @@ function update() {
 
   if (hitWall || hitSelf) {
     gameOver = true;
-    showOverlay("Game Over", "Tippe auf Start oder Neu starten fuer eine neue Runde.");
+    showGameOverOverlay();
     return;
   }
 
@@ -157,7 +192,6 @@ function drawRoundedTile(x, y, color, radius = 6) {
   const px = x * gridSize;
   const py = y * gridSize;
   const size = gridSize - 2;
-
   context.fillStyle = color;
   context.beginPath();
   context.roundRect(px + 1, py + 1, size, size, radius);
@@ -167,7 +201,6 @@ function drawRoundedTile(x, y, color, radius = 6) {
 function draw() {
   context.clearRect(0, 0, canvas.width, canvas.height);
   drawRoundedTile(food.x, food.y, "#bc4749", 10);
-
   snake.forEach((segment, index) => {
     drawRoundedTile(
       segment.x,
@@ -184,7 +217,6 @@ function loop(timestamp) {
     draw();
     lastFrameTime = timestamp;
   }
-
   requestAnimationFrame(loop);
 }
 
@@ -192,9 +224,7 @@ function togglePause() {
   if (!gameStarted || gameOver) {
     return;
   }
-
   paused = !paused;
-
   if (paused) {
     showOverlay("Pausiert", isTouchPreferred
       ? "Tippe auf Start oder Pause zum Fortsetzen."
@@ -224,39 +254,80 @@ function startGame(event) {
   if (event) {
     event.preventDefault();
   }
-
   if (paused) {
     togglePause();
     return;
   }
-
   startMoving({ x: 1, y: 0 });
+}
+
+async function doSubmitScore() {
+  const name = playerNameInput.value.trim();
+  if (!name) {
+    playerNameInput.focus();
+    return;
+  }
+  submitScoreButton.disabled = true;
+  await db.from("scores").insert({ name, score });
+  submitScoreButton.disabled = false;
+  hideScoreForm();
+  showOverlay("Game Over", isTouchPreferred
+    ? "Tippe auf Start oder Neu starten fuer eine neue Runde."
+    : "Druecke Enter oder tippe auf Start fuer eine neue Runde.");
+}
+
+async function openLeaderboard() {
+  leaderboardPanel.classList.remove("hidden");
+  leaderboardList.innerHTML = "<li class='leaderboard-loading'>Wird geladen…</li>";
+  const { data } = await db
+    .from("scores")
+    .select("name, score")
+    .order("score", { ascending: false })
+    .limit(20);
+  const entries = data ?? [];
+  if (entries.length === 0) {
+    leaderboardList.innerHTML = "<li class='leaderboard-loading'>Noch keine Eintraege.</li>";
+    return;
+  }
+  leaderboardList.innerHTML = entries
+    .map((entry, i) => {
+      const safeName = entry.name.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      return `<li class="leaderboard-item">
+        <span class="rank">${i + 1}</span>
+        <span class="lb-name">${safeName}</span>
+        <span class="lb-score">${entry.score}</span>
+      </li>`;
+    })
+    .join("");
 }
 
 window.addEventListener("keydown", (event) => {
   const nextDirection = directionFromKey(event.key.toLowerCase());
-
   if (nextDirection) {
     event.preventDefault();
     startMoving(nextDirection);
     return;
   }
-
   if (event.key === " ") {
     event.preventDefault();
     togglePause();
   } else if (event.key === "Enter") {
+    if (document.activeElement === playerNameInput) return;
     event.preventDefault();
     resetGame();
   }
 });
 
+playerNameInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.stopPropagation();
+    doSubmitScore();
+  }
+});
+
 canvas.addEventListener("touchstart", (event) => {
   const touch = event.touches[0];
-  if (!touch) {
-    return;
-  }
-
+  if (!touch) return;
   touchStartX = touch.clientX;
   touchStartY = touch.clientY;
 }, { passive: true });
@@ -267,28 +338,18 @@ canvas.addEventListener("touchmove", (event) => {
 
 canvas.addEventListener("touchend", (event) => {
   const touch = event.changedTouches[0];
-
-  if (!touch || touchStartX === null || touchStartY === null) {
-    return;
-  }
-
+  if (!touch || touchStartX === null || touchStartY === null) return;
   const deltaX = touch.clientX - touchStartX;
   const deltaY = touch.clientY - touchStartY;
   const absX = Math.abs(deltaX);
   const absY = Math.abs(deltaY);
-
   touchStartX = null;
   touchStartY = null;
-
-  if (Math.max(absX, absY) < minSwipeDistance) {
-    return;
-  }
-
+  if (Math.max(absX, absY) < minSwipeDistance) return;
   if (absX > absY) {
     startMoving(deltaX > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
     return;
   }
-
   startMoving(deltaY > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
 }, { passive: true });
 
@@ -296,16 +357,13 @@ canvas.addEventListener("touchend", (event) => {
   button.addEventListener("click", startGame);
 });
 
-[restartButton].forEach((button) => {
-  button.addEventListener("click", resetGame);
-});
+restartButton.addEventListener("click", resetGame);
 
 mobilePauseButton.addEventListener("click", () => {
   if (!gameStarted && !paused) {
     startGame();
     return;
   }
-
   togglePause();
 });
 
@@ -318,6 +376,18 @@ touchButtons.forEach((button) => {
     }
   });
 });
+
+submitScoreButton.addEventListener("click", doSubmitScore);
+
+skipScoreButton.addEventListener("click", () => {
+  hideScoreForm();
+  showOverlay("Game Over", isTouchPreferred
+    ? "Tippe auf Start oder Neu starten fuer eine neue Runde."
+    : "Druecke Enter oder tippe auf Start fuer eine neue Runde.");
+});
+
+leaderboardButton.addEventListener("click", openLeaderboard);
+closeLeaderboardButton.addEventListener("click", () => leaderboardPanel.classList.add("hidden"));
 
 resetGame();
 requestAnimationFrame(loop);
